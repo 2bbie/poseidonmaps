@@ -1,0 +1,111 @@
+
+<html>
+  <head><title>Poseidon Mapps</title></head>
+  <body>
+  
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <img src="logo.png" > 
+    </div>
+    <div class="row-fluid">
+      <div class="span12">
+          <div id="mapdiv" class="map"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.4.0/ol.css" type="text/css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.4.0/ol.js"></script>
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+    
+    epsg4326 =  new OpenLayers.Projection("EPSG:4326"); //WGS 1984 projection
+    projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
+    //--------------
+    var latArray = [-33.7737488,-33.5394152,-33.5130843,-33.4981981,-33.4901814,-33.4626899,-33.4237286,-33.5016336,-33.5554387,-33.5851889,-33.5886209,-33.7623327,-33.7292174,-33.7189376,-33.4856001,-33.468418,-33.8570401,-33.817116,-33.5737477,-33.4761503];
+
+    var lonArray = [70.351105510,-70.30166710,-70.314026610,-70.331879410,-70.345612310,-70.355225310,-70.363465110,-70.356598610,-70.349732210,-70.346985610,-70.340119110,-70.62713710,-70.605164310,-70.628510210,-70.848236810,-70.907288310,-71.098175810,-71.118775110,-70.955353510,-70.765839411];
+
+    //--------------
+    var lonLat = new OpenLayers.LonLat(-70.6172856,-33.4892603).transform(epsg4326, projectTo);
+          
+    
+    var zoom=10;
+    map.setCenter (lonLat, zoom);
+
+    var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+    
+    // Define markers as "features" of the vector layer:
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point(-70.6172856,-33.4793603).transform(epsg4326, projectTo),
+            {description:'Pozo con Alerta.<br> Niveles Bajos '} ,
+            {externalGraphic: 'bad.ico', graphicHeight: 32, graphicWidth: 32, graphicXOffset:-12, graphicYOffset:-25  }
+        );    
+    vectorLayer.addFeatures(feature);
+    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point(-70.6372856,-33.4892603).transform(epsg4326, projectTo),
+            {description:'Pozo en buen estado.<br> Niveles Normales '} ,
+            {externalGraphic: 'pin.png', graphicHeight: 40, graphicWidth: 32, graphicXOffset:-12, graphicYOffset:-25  }
+        );    
+    vectorLayer.addFeatures(feature);
+
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point(-70.6696856,-33.4921603).transform(epsg4326, projectTo),
+            {description:'Pozo con Alerta.<br> Niveles Bajos '} ,
+            {externalGraphic: 'bad.ico', graphicHeight: 32, graphicWidth: 32, graphicXOffset:-12, graphicYOffset:-25  }
+        );    
+    vectorLayer.addFeatures(feature);
+
+    // Random Points
+    var array1Length = latArray.length;
+    var array2Length = latArray.length;
+    for (var i = 0; i < array1Length-1; i++) {
+      //for (var f = 0; f < array2Length-1; f++) {  
+        var feature = new OpenLayers.Feature.Vector(
+        new OpenLayers.Geometry.Point(lonArray[i],latArray[i]).transform(epsg4326, projectTo),
+            {description:'Pozo en buen estado.<br> Niveles Normales '} ,
+            {externalGraphic: 'pin.png', graphicHeight: 40, graphicWidth: 32, graphicXOffset:-12, graphicYOffset:-25  }
+        );    
+        vectorLayer.addFeatures(feature);
+      //}
+    }
+    // -----------------------
+    map.addLayer(vectorLayer);
+ 
+    
+    //Add a selector control to the vectorLayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(vectorLayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
+
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+          feature.geometry.getBounds().getCenterLonLat(),
+          null,
+          '<div class="markerContent">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      //feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
+
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+    
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+      
+  </script>
+  <div id="explanation">Presione los marcadores para abrir el Pop-up.</div>
+</body></html>
+      
